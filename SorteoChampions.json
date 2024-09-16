@@ -1,0 +1,184 @@
+{
+    "equipos": [
+        {
+            "nombre": "Real Madrid",
+            "liga": "La Liga (ESP)",
+            "bombo": 1
+        },
+        {
+            "nombre": "Manchester City",
+            "liga": "Premier League (ENG)",
+            "bombo": 1
+        },
+        {
+            "nombre": "Bayern de Múnich",
+            "liga": "Bundesliga (GER)",
+            "bombo": 1
+        },
+        {
+            "nombre": "Paris Saint-Germain",
+            "liga": "Ligue 1 (FRA)",
+            "bombo": 1
+        },
+        {
+            "nombre": "Liverpool",
+            "liga": "Premier League (ENG)",
+            "bombo": 1
+        },
+        {
+            "nombre": "Inter",
+            "liga": "Serie A (ITA)",
+            "bombo": 1
+        },
+        {
+            "nombre": "Dortmund",
+            "liga": "Bundesliga (GER)",
+            "bombo": 1
+        },
+        {
+            "nombre": "Leipzig",
+            "liga": "Bundesliga (GER)",
+            "bombo": 1
+        },
+        {
+            "nombre": "Barcelona",
+            "liga": "La Liga (ESP)",
+            "bombo": 1
+        },
+        {
+            "nombre": "Leverkusen",
+            "liga": "Bundesliga (GER)",
+            "bombo": 2
+        },
+        {
+            "nombre": "Atlético de Madrid",
+            "liga": "La Liga (ESP)",
+            "bombo": 2
+        },
+        {
+            "nombre": "Atalanta",
+            "liga": "Serie A (ITA)",
+            "bombo": 2
+        },
+        {
+            "nombre": "Juventus",
+            "liga": "Serie A (ITA)",
+            "bombo": 2
+        },
+        {
+            "nombre": "Benfica",
+            "liga": "Primeira Liga (POR)",
+            "bombo": 2
+        },
+        {
+            "nombre": "Arsenal",
+            "liga": "Premier League (ENG)",
+            "bombo": 2
+        },
+        {
+            "nombre": "Brujas",
+            "liga": "Pro League (BEL)",
+            "bombo": 2
+        },
+        {
+            "nombre": "Shakhtar Donetsk",
+            "liga": "Ukrainian Premier League (UKR)",
+            "bombo": 2
+        },
+        {
+            "nombre": "AC Milan",
+            "liga": "Serie A (ITA)",
+            "bombo": 2
+        },
+        {
+            "nombre": "Feyenoord",
+            "liga": "Eredivisie (NED)",
+            "bombo": 3
+        },
+        {
+            "nombre": "Sporting CP",
+            "liga": "Primeira Liga (POR)",
+            "bombo": 3
+        },
+        {
+            "nombre": "PSV Eindhoven",
+            "liga": "Eredivisie (NED)",
+            "bombo": 3
+        },
+        {
+            "nombre": "GNK Dinamo",
+            "liga": "Prva HNL (CRO)",
+            "bombo": 3
+        },
+        {
+            "nombre": "Salzburgo",
+            "liga": "Bundesliga (AUT)",
+            "bombo": 3
+        },
+        {
+            "nombre": "Lille",
+            "liga": "Ligue 1 (FRA)",
+            "bombo": 3
+        },
+        {
+            "nombre": "Estrella Roja",
+            "liga": "Superliga de Serbia (SRB)",
+            "bombo": 3
+        },
+        {
+            "nombre": "Young Boys",
+            "liga": "Superliga Suiza (SUI)",
+            "bombo": 3
+        },
+        {
+            "nombre": "Celtic",
+            "liga": "Scottish Premiership (SCO)",
+            "bombo": 3
+        },
+        {
+            "nombre": "Slovan Bratislava",
+            "liga": "Fortuna Liga (SVK)",
+            "bombo": 4
+        },
+        {
+            "nombre": "Mónaco",
+            "liga": "Ligue 1 (FRA)",
+            "bombo": 4
+        },
+        {
+            "nombre": "Sparta de Praga",
+            "liga": "Fortuna Liga (CZE)",
+            "bombo": 4
+        },
+        {
+            "nombre": "Aston Villa",
+            "liga": "Premier League (ENG)",
+            "bombo": 4
+        },
+        {
+            "nombre": "Bolonia",
+            "liga": "Serie A (ITA)",
+            "bombo": 4
+        },
+        {
+            "nombre": "Girona",
+            "liga": "La Liga (ESP)",
+            "bombo": 4
+        },
+        {
+            "nombre": "Stuttgart",
+            "liga": "Bundesliga (GER)",
+            "bombo": 4
+        },
+        {
+            "nombre": "Sturm Graz",
+            "liga": "Bundesliga (AUT)",
+            "bombo": 4
+        },
+        {
+            "nombre": "Brest",
+            "liga": "Ligue 1 (FRA)",
+            "bombo": 4
+        }
+    ]
+}
