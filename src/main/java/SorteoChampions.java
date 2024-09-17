@@ -21,22 +21,9 @@ public class SorteoChampions {
             encuentrosMap.put(equipo, encuentro);
         }
 
-        List<Partido> partidosDisponibles = new ArrayList<>();
-
-        // Generar todos los partidos posibles
-        for (Equipo equipoLocal : equipos) {
-            for (Equipo equipoVisitante : equipos) {
-                if (!equipoLocal.equals(equipoVisitante)) {
-                    partidosDisponibles.add(new Partido(equipoLocal, equipoVisitante, true));
-                }
-            }
-        }
-
-        Collections.shuffle(partidosDisponibles);
-
+        // Mapas para controlar los partidos en casa, como visitante y los encuentros por bombo
         Map<Equipo, Integer> partidosEnCasa = new HashMap<>();
         Map<Equipo, Integer> partidosComoVisitante = new HashMap<>();
-
         Map<Equipo, Map<Integer, Integer>> encuentrosPorBombo = new HashMap<>();
 
         for (Equipo equipo : equipos) {
@@ -44,31 +31,46 @@ public class SorteoChampions {
             partidosComoVisitante.put(equipo, 0);
             encuentrosPorBombo.put(equipo, new HashMap<>());
             for (int i = 1; i <= 4; i++) {
-                encuentrosPorBombo.get(equipo).put(i, 0);  // Cada bombo con 0 encuentros iniciales
+                encuentrosPorBombo.get(equipo).put(i, 0);
             }
         }
 
-        // Asignar partidos respetando las reglas de enfrentamientos por bombo
-        for (Partido partido : partidosDisponibles) {
+        List<Partido> partidosAsignados = new ArrayList<>();
+
+        for (Equipo equipoLocal : equipos) {
+            for (Equipo equipoVisitante : equipos) {
+                if (!equipoLocal.equals(equipoVisitante)) {
+                    partidosAsignados.add(new Partido(equipoLocal, equipoVisitante, true));
+                }
+            }
+        }
+
+        // Ordenar los partidos de manera estratégica, los comparamos teniendo el bombo del que pertenecen.
+        partidosAsignados.sort(Comparator.comparingInt((Partido partido) -> partido.getLocal().getBombo())
+                .thenComparingInt(partido -> partido.getVisitante().getBombo()));
+
+        // Proceso iterativo de asignación
+        for (Partido partido : partidosAsignados) {
             Equipo equipoLocal = partido.getLocal();
             Equipo equipoVisitante = partido.getVisitante();
 
             int bomboLocal = equipoLocal.getBombo();
             int bomboVisitante = equipoVisitante.getBombo();
 
-            // Condiciones: No exceder 4 partidos en casa y visitante
+            // Verificar si se puede asignar el partido sin violar las restricciones
             if (partidosEnCasa.get(equipoLocal) < PARTIDOS_EN_CASA &&
                     partidosComoVisitante.get(equipoVisitante) < PARTIDOS_COMO_VISITANTE &&
-                    verificarBomboExacto(encuentrosPorBombo.get(equipoLocal), bomboVisitante) &&
-                    verificarBomboExacto(encuentrosPorBombo.get(equipoVisitante), bomboLocal)) {
+                    encuentrosPorBombo.get(equipoLocal).get(bomboVisitante) < 2 &&
+                    encuentrosPorBombo.get(equipoVisitante).get(bomboLocal) < 2) {
 
+                // Asignar el partido
                 Encuentro encuentroLocal = encuentrosMap.get(equipoLocal);
                 Encuentro encuentroVisitante = encuentrosMap.get(equipoVisitante);
 
                 encuentroLocal.agregarPartido(partido);
                 encuentroVisitante.agregarPartido(new Partido(equipoVisitante, equipoLocal, false));
 
-                // Actualizar conteo de partidos en casa, visitante y por bombo
+                // Actualizar conteo
                 partidosEnCasa.put(equipoLocal, partidosEnCasa.get(equipoLocal) + 1);
                 partidosComoVisitante.put(equipoVisitante, partidosComoVisitante.get(equipoVisitante) + 1);
 
@@ -77,7 +79,7 @@ public class SorteoChampions {
             }
         }
 
-        // Verificar si todos los equipos tienen 8 partidos asignados
+        // Verificar que todos los equipos tengan 8 partidos
         for (Equipo equipo : equipos) {
             Encuentro encuentro = encuentrosMap.get(equipo);
             if (encuentro.getPartidos().size() != 8) {
@@ -85,12 +87,12 @@ public class SorteoChampions {
             }
         }
 
+        // Mostrar todos los encuentros
         for (Encuentro encuentro : encuentrosMap.values()) {
             System.out.println(encuentro);
         }
     }
 
-    // Método para verificar si un equipo tiene exactamente 2 partidos por bombo
     private boolean verificarBomboExacto(Map<Integer, Integer> encuentrosPorBombo, int bomboRival) {
         return encuentrosPorBombo.get(bomboRival) < 2;
     }
