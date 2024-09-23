@@ -18,11 +18,20 @@ public class Encuentro {
         return partido1.equals(partido2);
     }
 
+    public boolean yaHaJugadoComoVisitante(Equipo equipo) {
+        for (Partido partido : this.partidos) {
+            if (partido.getVisitante().equals(equipo)) {
+                return true; // El equipo ya ha jugado como visitante
+            }
+        }
+        return false; // El equipo no ha jugado como visitante
+    }
+
     public Equipo getEquipo() { return equipo; }
     public List<Partido> getPartidos() { return partidos; }
 
     @Override
     public String toString() {
-        return "Equipo: " + equipo + "\nPartidos:\n" + partidos;
+        return "Equipo: " + equipo + "\nPartidos:\n" + partidos + "\n Número de partidos: " + partidos.size();
     }
 }

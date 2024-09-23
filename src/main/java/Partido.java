@@ -9,6 +9,10 @@ public class Partido {
         this.esLocal = esLocal;
     }
 
+    public Equipo[] getEquipos() {
+        return new Equipo[]{local, visitante};
+    }
+
     public Equipo getLocal() {
         return local;
     }
@@ -17,7 +21,7 @@ public class Partido {
         return visitante;
     }
 
-    public boolean isEsLocal() {
+    public boolean isLocal() {
         return esLocal;
     }
 
