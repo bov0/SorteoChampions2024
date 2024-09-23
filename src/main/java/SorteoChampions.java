@@ -16,132 +16,138 @@ public class SorteoChampions {
     }
 
     public void realizarSorteo() {
-        Map<Equipo, Encuentro> encuentrosMap = inicializarEncuentros();
-        Map<Integer, List<Equipo>> equiposPorBombo = agruparEquiposPorBombo();
+        Map<Equipo, Encuentro> encuentrosMap = new HashMap<>();
+        Map<Integer, List<Equipo>> equiposPorBombo = new HashMap<>();
 
+        // Inicializar encuentros y agrupar equipos por bombo
+        for (Equipo equipo : equipos) {
+            Encuentro encuentro = new Encuentro(equipo);
+            encuentrosMap.put(equipo, encuentro);
+            equiposPorBombo.computeIfAbsent(equipo.getBombo(), k -> new ArrayList<>()).add(equipo);
+        }
+
+        // Trabajar solo con el bombo 1
         int bombo = 1;
         List<Equipo> equiposDelBombo = equiposPorBombo.get(bombo);
 
         if (equiposDelBombo == null) return;
 
         System.out.println("Generando encuentros para el bombo: " + bombo);
+
+        // Obtener teamsByCountry para el bombo actual
         LinkedHashMap<String, Integer> teamsByCountry = obtenerTeamsByCountry(equiposDelBombo);
         System.out.println("Estado inicial de equipos por país: " + teamsByCountry);
 
-        Map<Equipo, Integer> partidosAsignados = inicializarPartidosAsignados(equiposDelBombo);
-        Set<String> partidosJugados = new HashSet<>();
-
-        while (true) {
-            String ligaConMasEquipos = obtenerLigaConMasEquipos(teamsByCountry);
-            if (ligaConMasEquipos == null) break;
-
-            Equipo equipoLocal = elegirEquipoLocal(equiposDelBombo, ligaConMasEquipos, partidosAsignados);
-            if (equipoLocal == null) continue;
-
-            Equipo equipoVisitante = elegirEquipoVisitante(equiposDelBombo, equipoLocal, partidosAsignados);
-            if (equipoVisitante == null) continue;
-
-            String partidoId = equipoLocal.getNombre() + "-" + equipoVisitante.getNombre();
-            if (partidosJugados.contains(partidoId)) continue;
-
-            if (asignarPartido(encuentrosMap, partidosAsignados, teamsByCountry, partidoId, equipoLocal, equipoVisitante)) {
-                partidosJugados.add(partidoId);
-            }
-        }
-
-        mostrarEncuentros(encuentrosMap, equiposDelBombo);
-        verificarPartidosAsignados(encuentrosMap, equiposDelBombo);
-    }
-
-    private Map<Equipo, Encuentro> inicializarEncuentros() {
-        Map<Equipo, Encuentro> encuentrosMap = new HashMap<>();
-        for (Equipo equipo : equipos) {
-            encuentrosMap.put(equipo, new Encuentro(equipo));
-        }
-        return encuentrosMap;
-    }
-
-    private Map<Integer, List<Equipo>> agruparEquiposPorBombo() {
-        Map<Integer, List<Equipo>> equiposPorBombo = new HashMap<>();
-        for (Equipo equipo : equipos) {
-            equiposPorBombo.computeIfAbsent(equipo.getBombo(), k -> new ArrayList<>()).add(equipo);
-        }
-        return equiposPorBombo;
-    }
-
-    private Map<Equipo, Integer> inicializarPartidosAsignados(List<Equipo> equiposDelBombo) {
+        // Mapas para controlar los partidos asignados
         Map<Equipo, Integer> partidosAsignados = new HashMap<>();
+        Set<String> partidosJugados = new HashSet<>(); // Para evitar partidos repetidos
+
         for (Equipo equipo : equiposDelBombo) {
             partidosAsignados.put(equipo, 0);
         }
-        return partidosAsignados;
-    }
 
-    private String obtenerLigaConMasEquipos(LinkedHashMap<String, Integer> teamsByCountry) {
-        return teamsByCountry.entrySet().stream()
-                .filter(entry -> entry.getValue() > 0)
-                .map(Map.Entry::getKey)
-                .findFirst()
-                .orElse(null);
-    }
+        while (true) {
+            // Obtener la lista de ligas ordenada por cantidad de equipos
+            List<Map.Entry<String, Integer>> listaPaises = new ArrayList<>(teamsByCountry.entrySet());
+            listaPaises.sort((a, b) -> b.getValue().compareTo(a.getValue())); // Ordenar de mayor a menor
 
-    private Equipo elegirEquipoLocal(List<Equipo> equiposDelBombo, String ligaConMasEquipos, Map<Equipo, Integer> partidosAsignados) {
-        List<Equipo> equiposDeLaLiga = equiposDelBombo.stream()
-                .filter(equipo -> equipo.getLiga().equals(ligaConMasEquipos) && partidosAsignados.get(equipo) < 2)
-                .toList();
+            // Buscar liga con equipos disponibles
+            String ligaConMasEquipos = null;
+            for (Map.Entry<String, Integer> entry : listaPaises) {
+                if (entry.getValue() > 0) {
+                    ligaConMasEquipos = entry.getKey();
+                    break;
+                }
+            }
 
-        if (equiposDeLaLiga.isEmpty()) return null;
-        return equiposDeLaLiga.get(new Random().nextInt(equiposDeLaLiga.size()));
-    }
+            if (ligaConMasEquipos == null) break; // Salir si no hay países disponibles
 
-    private Equipo elegirEquipoVisitante(List<Equipo> equiposDelBombo, Equipo equipoLocal, Map<Equipo, Integer> partidosAsignados) {
-        List<Equipo> equiposVisitantes = equiposDelBombo.stream()
-                .filter(equipo -> !equipo.equals(equipoLocal) && partidosAsignados.get(equipo) < 2)
-                .filter(equipo -> !equipo.getLiga().equals(equipoLocal.getLiga()))
-                .toList();
+            // Elegir un equipo del país con más equipos
+            List<Equipo> equiposDeLaLiga = new ArrayList<>();
+            for (Equipo equipo : equiposDelBombo) {
+                if (equipo.getLiga().equals(ligaConMasEquipos) && partidosAsignados.get(equipo) < 2) {
+                    equiposDeLaLiga.add(equipo);
+                }
+            }
 
-        if (equiposVisitantes.isEmpty()) return null;
+            if (equiposDeLaLiga.isEmpty()) continue; // Continuar si no hay equipos disponibles en la liga
 
-        return equiposVisitantes.get(new Random().nextInt(equiposVisitantes.size()));
-    }
+            Equipo equipoLocal = equiposDeLaLiga.get(new Random().nextInt(equiposDeLaLiga.size()));
 
-    private boolean asignarPartido(Map<Equipo, Encuentro> encuentrosMap, Map<Equipo, Integer> partidosAsignados,
-                                   LinkedHashMap<String, Integer> teamsByCountry, String partidoId,
-                                   Equipo equipoLocal, Equipo equipoVisitante) {
+            // Buscar un equipo visitante en otras ligas
+            List<Equipo> equiposVisitantes = new ArrayList<>();
+            for (Equipo equipo : equiposDelBombo) {
+                if (!equipo.equals(equipoLocal) && partidosAsignados.get(equipo) < 2) {
+                    equiposVisitantes.add(equipo);
+                }
+            }
 
-        if (partidosAsignados.get(equipoLocal) < 2 &&
-                partidosAsignados.get(equipoVisitante) < 2) {
+            // Filtrar para que el visitante no sea de la misma liga
+            equiposVisitantes.removeIf(equipo -> equipo.getLiga().equals(equipoLocal.getLiga()));
 
-            Partido partido = new Partido(equipoLocal, equipoVisitante, true);
-            Encuentro encuentroLocal = encuentrosMap.get(equipoLocal);
-            Encuentro encuentroVisitante = encuentrosMap.get(equipoVisitante);
+            if (equiposVisitantes.isEmpty()) continue; // Continuar si no hay equipos visitantes válidos
 
-            encuentroLocal.agregarPartido(partido);
-            encuentroVisitante.agregarPartido(new Partido(equipoVisitante, equipoLocal, false));
+            // Elegir un equipo visitante de una liga con más equipos
+            // Ordenar de mayor a menor
+            String ligaVisitante = equiposVisitantes.stream()
+                    .map(Equipo::getLiga)
+                    .distinct().min((a, b) -> Integer.compare(teamsByCountry.get(b), teamsByCountry.get(a)))
+                    .orElse(null);
 
-            partidosAsignados.put(equipoLocal, partidosAsignados.get(equipoLocal) + 1);
-            partidosAsignados.put(equipoVisitante, partidosAsignados.get(equipoVisitante) + 1);
+            if (ligaVisitante == null) continue; // Si no hay ligas visitantes, continuar
 
-            teamsByCountry.put(equipoLocal.getLiga(), teamsByCountry.get(equipoLocal.getLiga()) - 1);
-            teamsByCountry.put(equipoVisitante.getLiga(), teamsByCountry.get(equipoVisitante.getLiga()) - 1);
+            List<Equipo> posiblesVisitantes = equiposVisitantes.stream()
+                    .filter(equipo -> equipo.getLiga().equals(ligaVisitante))
+                    .toList();
 
-            System.out.println("Partido asignado: " + equipoLocal.getNombre() + " vs " + equipoVisitante.getNombre());
-            System.out.println("Estado actualizado de equipos por país: " + teamsByCountry);
-            return true;
+            if (posiblesVisitantes.isEmpty()) continue; // Si no hay visitantes válidos, continuar
+
+            Equipo equipoVisitante = posiblesVisitantes.get(new Random().nextInt(posiblesVisitantes.size()));
+
+            // Verificar si ya se han jugado este partido
+            String partidoId = equipoLocal.getNombre() + "-" + equipoVisitante.getNombre();
+            if (partidosJugados.contains(partidoId)) continue; // Si ya se jugó, saltar
+
+            // Comprobar que ambos equipos no superen el límite de 2 partidos
+            // Verificar si ambos equipos no han superado el límite de 2 partidos
+            if (partidosAsignados.get(equipoLocal) < 2 &&
+                    partidosAsignados.get(equipoVisitante) < 2 &&
+                    !encuentrosMap.get(equipoVisitante).yaHaJugadoComoVisitante(equipoVisitante)) {
+
+                // Asignar el partido
+                Partido partido = new Partido(equipoLocal, equipoVisitante, true);
+                Encuentro encuentroLocal = encuentrosMap.get(equipoLocal);
+                Encuentro encuentroVisitante = encuentrosMap.get(equipoVisitante);
+
+                encuentroLocal.agregarPartido(partido);
+                encuentroVisitante.agregarPartido(new Partido(equipoVisitante, equipoLocal, false));
+
+                // Actualizar los conteos
+                partidosAsignados.put(equipoLocal, partidosAsignados.get(equipoLocal) + 1);
+                partidosAsignados.put(equipoVisitante, partidosAsignados.get(equipoVisitante) + 1);
+
+                // Marcar el partido como jugado
+                partidosJugados.add(partidoId);
+
+                // Actualizar el conteo de equipos por país
+                teamsByCountry.put(equipoLocal.getLiga(), teamsByCountry.get(equipoLocal.getLiga()) - 1);
+                teamsByCountry.put(equipoVisitante.getLiga(), teamsByCountry.get(equipoVisitante.getLiga()) - 1);
+
+                // Mostrar estado actualizado de teamsByCountry
+                System.out.println("Partido asignado: " + equipoLocal.getNombre() + " vs " + equipoVisitante.getNombre());
+                System.out.println("Estado actualizado de equipos por país: " + teamsByCountry);
+            }
         }
-        return false;
-    }
 
-    private void mostrarEncuentros(Map<Equipo, Encuentro> encuentrosMap, List<Equipo> equiposDelBombo) {
+        // Mostrar todos los encuentros
         for (Encuentro encuentro : encuentrosMap.values()) {
             if (encuentro.getEquipo().getBombo() == 1) {
                 System.out.println(encuentro);
                 System.out.println();
             }
         }
-    }
 
-    private void verificarPartidosAsignados(Map<Equipo, Encuentro> encuentrosMap, List<Equipo> equiposDelBombo) {
+        // Verificar que todos los equipos tengan exactamente 2 partidos asignados
         for (Equipo equipo : equiposDelBombo) {
             if (equipo.getBombo() == 1) {
                 Encuentro encuentro = encuentrosMap.get(equipo);
