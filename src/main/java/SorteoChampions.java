@@ -48,12 +48,12 @@ public class SorteoChampions {
 
         while (true) {
             // Obtener la lista de ligas ordenada por cantidad de equipos
-            List<Map.Entry<String, Integer>> listaPaises = new ArrayList<>(teamsByCountry.entrySet());
-            listaPaises.sort((a, b) -> b.getValue().compareTo(a.getValue())); // Ordenar de mayor a menor
+            List<Map.Entry<String, Integer>> listaLigas = new ArrayList<>(teamsByCountry.entrySet());
+            listaLigas.sort((a, b) -> b.getValue().compareTo(a.getValue())); // Ordenar de mayor a menor
 
             // Buscar liga con equipos disponibles
             String ligaConMasEquipos = null;
-            for (Map.Entry<String, Integer> entry : listaPaises) {
+            for (Map.Entry<String, Integer> entry : listaLigas) {
                 if (entry.getValue() > 0) {
                     ligaConMasEquipos = entry.getKey();
                     break;
@@ -63,35 +63,55 @@ public class SorteoChampions {
             if (ligaConMasEquipos == null) break; // Salir si no hay países disponibles
 
             // Elegir un equipo del país con más equipos
-            List<Equipo> equiposDeLaLiga = new ArrayList<>();
+            List<Equipo> equiposLigaConMayoresContendientes = new ArrayList<>();
             for (Equipo equipo : equiposDelBombo) {
                 if (equipo.getLiga().equals(ligaConMasEquipos) && partidosAsignados.get(equipo) < 2) {
-                    equiposDeLaLiga.add(equipo);
+                    equiposLigaConMayoresContendientes.add(equipo);
                 }
             }
 
-            if (equiposDeLaLiga.isEmpty()) continue; // Continuar si no hay equipos disponibles en la liga
+            if (equiposLigaConMayoresContendientes.isEmpty()) continue; // Continuar si no hay equipos disponibles en la liga
 
-            Equipo equipoLocal = equiposDeLaLiga.get(new Random().nextInt(equiposDeLaLiga.size()));
+            Equipo equipoLocal = equiposLigaConMayoresContendientes.get(new Random().nextInt(equiposLigaConMayoresContendientes.size()));
 
             // Buscar un equipo visitante en otras ligas
             List<Equipo> equiposVisitantes = new ArrayList<>();
             for (Equipo equipo : equiposDelBombo) {
-                if (!equipo.equals(equipoLocal) && partidosAsignados.get(equipo) < 2) {
+                // Verificar si no es el mismo que el local y que no ha disputado más de 2 partidos
+                if (!equipo.equals(equipoLocal) && partidosAsignados.get(equipo) < 2 && !encuentrosMap.get(equipo).yaHaJugadoComoLocal(equipo)) {
+                    System.out.println(equipo.getNombre() + " ha jugado como visitante " + encuentrosMap.get(equipo).yaHaJugadoComoVisitante(equipo));
                     equiposVisitantes.add(equipo);
+                }
+            }
+
+            // Buscar un equipo visitante en otras ligas
+            List<Equipo> equiposLocales = new ArrayList<>();
+            for (Equipo equipo : equiposDelBombo) {
+                // Verificar si no es el mismo que el local y que no ha disputado más de 2 partidos
+                if (!equipo.equals(equipoLocal) && partidosAsignados.get(equipo) < 2 && !encuentrosMap.get(equipo).yaHaJugadoComoLocal(equipo)) {
+                    System.out.println(equipo.getNombre() + " ha jugado como local " + encuentrosMap.get(equipo).yaHaJugadoComoLocal(equipo));
+                    equiposLocales.add(equipo);
                 }
             }
 
             // Filtrar para que el visitante no sea de la misma liga
             equiposVisitantes.removeIf(equipo -> equipo.getLiga().equals(equipoLocal.getLiga()));
 
+            // Filtrar los que ya han jugado como visitantes en sus encuentros
+            equiposVisitantes.removeIf(equipo -> {
+                Encuentro encuentro = encuentrosMap.get(equipo);
+                return encuentro != null && encuentro.yaHaJugadoComoVisitante(equipo);
+                //tampoco funciona return partidosJugados.contains("-" + equipo);
+            });
+
             if (equiposVisitantes.isEmpty()) continue; // Continuar si no hay equipos visitantes válidos
 
+
             // Elegir un equipo visitante de una liga con más equipos
-            // Ordenar de mayor a menor
             String ligaVisitante = equiposVisitantes.stream()
                     .map(Equipo::getLiga)
-                    .distinct().min((a, b) -> Integer.compare(teamsByCountry.get(b), teamsByCountry.get(a)))
+                    .distinct()
+                    .min((a, b) -> Integer.compare(teamsByCountry.get(b), teamsByCountry.get(a)))
                     .orElse(null);
 
             if (ligaVisitante == null) continue; // Si no hay ligas visitantes, continuar
@@ -109,11 +129,7 @@ public class SorteoChampions {
             if (partidosJugados.contains(partidoId)) continue; // Si ya se jugó, saltar
 
             // Comprobar que ambos equipos no superen el límite de 2 partidos
-            // Verificar si ambos equipos no han superado el límite de 2 partidos
-            if (partidosAsignados.get(equipoLocal) < 2 &&
-                    partidosAsignados.get(equipoVisitante) < 2 &&
-                    !encuentrosMap.get(equipoVisitante).yaHaJugadoComoVisitante(equipoVisitante)) {
-
+            if (partidosAsignados.get(equipoLocal) < 2 && partidosAsignados.get(equipoVisitante) < 2) {
                 // Asignar el partido
                 Partido partido = new Partido(equipoLocal, equipoVisitante, true);
                 Encuentro encuentroLocal = encuentrosMap.get(equipoLocal);

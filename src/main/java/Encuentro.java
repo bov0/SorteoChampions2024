@@ -18,6 +18,15 @@ public class Encuentro {
         return partido1.equals(partido2);
     }
 
+    public boolean yaHaJugadoComoLocal(Equipo equipo) {
+        for (Partido partido : this.partidos) {
+            if (partido.getLocal().equals(equipo)) {
+                return true; // El equipo ya ha jugado como local
+            }
+        }
+        return false; // El equipo no ha jugado como visitante
+    }
+
     public boolean yaHaJugadoComoVisitante(Equipo equipo) {
         for (Partido partido : this.partidos) {
             if (partido.getVisitante().equals(equipo)) {
