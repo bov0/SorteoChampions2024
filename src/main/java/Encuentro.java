@@ -18,22 +18,46 @@ public class Encuentro {
         return partido1.equals(partido2);
     }
 
-    public boolean yaHaJugadoComoLocal(Equipo equipo) {
+    public Boolean yaHaJugadoComoLocal(Equipo equipo) {
+        boolean haJugadoComoVisitante = false;
+
         for (Partido partido : this.partidos) {
+            // Si el equipo ha jugado como local, devolver true
             if (partido.getLocal().equals(equipo)) {
-                return true; // El equipo ya ha jugado como local
+                return true;
+            }
+            // Si el equipo ha jugado como visitante, marcar que ha jugado
+            if (partido.getVisitante().equals(equipo)) {
+                haJugadoComoVisitante = true;
             }
         }
-        return false; // El equipo no ha jugado como visitante
+        // Si ha jugado como visitante pero no como local, devolver false
+        if (haJugadoComoVisitante) {
+            return false;
+        }
+        // Si no ha jugado ningún partido, devolver null
+        return null;
     }
 
-    public boolean yaHaJugadoComoVisitante(Equipo equipo) {
+    public Boolean yaHaJugadoComoVisitante(Equipo equipo) {
+        boolean haJugadoComoLocal = false;
+
         for (Partido partido : this.partidos) {
+            // Si el equipo ha jugado como visitante, devolver true
             if (partido.getVisitante().equals(equipo)) {
-                return true; // El equipo ya ha jugado como visitante
+                return true;
+            }
+            // Si el equipo ha jugado como local, marcar que ha jugado
+            if (partido.getLocal().equals(equipo)) {
+                haJugadoComoLocal = true;
             }
         }
-        return false; // El equipo no ha jugado como visitante
+        // Si ha jugado como local pero no como visitante, devolver false
+        if (haJugadoComoLocal) {
+            return false;
+        }
+        // Si no ha jugado ningún partido, devolver null
+        return null;
     }
 
     public Equipo getEquipo() { return equipo; }

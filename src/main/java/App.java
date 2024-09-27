@@ -1,7 +1,6 @@
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 public class App {
 
@@ -16,7 +15,7 @@ public class App {
 
             SorteoChampions sorteo = new SorteoChampions(sorteoChampions.getEquipos());
 
-            sorteo.realizarSorteo();
+            sorteo.RealizarSorteo();
 
         } catch (IOException e) {
             e.printStackTrace();
