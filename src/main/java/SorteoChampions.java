@@ -47,7 +47,6 @@ public class SorteoChampions {
 
             //Mostrar todos los equipos que pueden jugar de local
             List<Equipo> equiposQuePuedenJugarDeLocal = EquiposQuePuedenJugar(equiposPorLigaOrdenadosDescendente, encuentrosMap, true);
-            List<Equipo> equiposQuePuedenJugarDeVisitante = EquiposQuePuedenJugar(equiposPorLigaOrdenadosDescendente, encuentrosMap, false);
 
             // Obtener la lista de ligas ordenada por cantidad de equipos
             List<Map.Entry<String, Integer>> listaLigas = new ArrayList<>(equiposPorLiga.entrySet());
@@ -72,9 +71,6 @@ public class SorteoChampions {
 
             PartidosDisponiblesEnLigaConcreta(equiposLigaConMasEquipos, ligaConMasEquipos, encuentrosMap);
 
-            //Equipos que pueden jugar de visitante
-            equiposQuePuedenJugarDeVisitante(equiposQuePuedenJugarDeVisitante, encuentrosMap, ligaConMasEquipos, partidosAsignados);
-
             if (equiposLigaConMasEquipos.isEmpty()) {
                 System.out.println("No hay mas equipos en la liga con mas equipos disponibles");
                 //Si no hay en esa liga abría que elegir la siguiente y asi sucesivamente.
@@ -82,6 +78,17 @@ public class SorteoChampions {
             }
 
             Equipo equipoPrincipal = equiposLigaConMasEquipos.get(new Random().nextInt(equiposLigaConMasEquipos.size()));
+
+            System.out.println("EQUIPO PRINCIPAL SELECCIONADO ES: " + equipoPrincipal);
+            System.out.println("HA JUGADO COMO LOCAL EL EQUIPO PRINCIPAL? " + encuentrosMap.get(equipoPrincipal).yaHaJugadoComoLocal(equipoPrincipal));
+            System.out.println("HA JUGADO COMO VISITANTE EL EQUIPO PRINCIPAL? " + encuentrosMap.get(equipoPrincipal).yaHaJugadoComoVisitante(equipoPrincipal));
+
+            Encuentro encuentroPrincipal = encuentrosMap.get(equipoPrincipal);
+            boolean equipoPrincipalHaJugadoComoLocal = false;
+
+            if (encuentroPrincipal != null && encuentroPrincipal.yaHaJugadoComoLocal(equipoPrincipal)) {
+                equipoPrincipalHaJugadoComoLocal = true;
+            }
 
             // Buscar un equipo contendiente en otras ligas
             List<Equipo> posiblesContendientes = new ArrayList<>();
@@ -91,20 +98,36 @@ public class SorteoChampions {
                     posiblesContendientes.add(equipo);
                 }
             }
-            System.out.println("2. Posibles contendientes " + posiblesContendientes);
+
+            System.out.println("EQUIPOS CONTENDIENTES SIN FILTROS" + posiblesContendientes);
 
             // Filtrar para que el contendiente no sea de la misma liga
             posiblesContendientes.removeIf(equipo -> equipo.getLiga().equals(equipoPrincipal.getLiga()));
+            for (int i = 0; i < posiblesContendientes.size(); i++) {
+                System.out.println("HA JUGADO COMO LOCAL EL " + posiblesContendientes.get(i).getNombre() +  "? " + encuentrosMap.get(equipoPrincipal).yaHaJugadoComoLocal(equipoPrincipal));
+                System.out.println("HA JUGADO COMO VISITANTE EL " + posiblesContendientes.get(i).getNombre() +  "? " + encuentrosMap.get(equipoPrincipal).yaHaJugadoComoVisitante(equipoPrincipal));
+            }
 
-            // Filtrar los que ya han jugado como visitantes en sus encuentros
-            posiblesContendientes.removeIf(equipo -> {
-                Encuentro encuentro = encuentrosMap.get(equipo);
-                Boolean haJugadoComoVisitante = encuentro != null ? encuentro.yaHaJugadoComoVisitante(equipo) : null;
-                return haJugadoComoVisitante != null && haJugadoComoVisitante; // Si ha jugado como visitante, se elimina
-            });
+            if (equipoPrincipalHaJugadoComoLocal) {
+                // Mantener solo los equipos que NO hayan jugado como local, porque pueden ser locales
+                posiblesContendientes.removeIf(equipo -> {
+                    Encuentro encuentro = encuentrosMap.get(equipo);
+                    return encuentro.yaHaJugadoComoLocal(equipo);
+                });
+            } else {
+                // Si el equipo principal no ha jugado como local, buscamos un contendiente que pueda jugar como visitante
+                posiblesContendientes.removeIf(equipo -> {
+                    Encuentro encuentro = encuentrosMap.get(equipo);
+                    return encuentro.yaHaJugadoComoVisitante(equipo);
+                });
+            }
 
-            if (posiblesContendientes.isEmpty()) continue; // Continuar si no hay equipos visitantes válidos
+            if (posiblesContendientes.isEmpty()) {
+                System.out.println("NO HAY CONTENDIENTES VALIDOS, LES FALTA EL MISMO ENFRENTAMIENTO QUE EL EQUIPO PRINCIPAL!");
+                System.out.println(equiposQuePuedenJugarDeLocal);
+            } // Continuar si no hay equipos contendientes válidos
 
+            System.out.println("EQUIPOS CONTENDIENTES DESPUES DE LOS FILTROS " + posiblesContendientes);
 
             // Elegir un equipo contendiente de una liga con más equipos
             String ligaContendiente = posiblesContendientes.stream()
@@ -131,7 +154,8 @@ public class SorteoChampions {
 
             // Verificar si ya se han jugado este partido
             String partidoId = equipoPrincipal.getNombre() + "-" + equipoContendiente.getNombre();
-            if (partidosJugados.contains(partidoId)) {
+            String partidoId2 = equipoContendiente.getNombre() + "-" + equipoPrincipal.getNombre();
+            if (partidosJugados.contains(partidoId) || partidosJugados.contains(partidoId2)) {
                 System.out.println("Ya se jugó el partido " + partidoId);
                 continue; // Si ya se jugó, saltar
             }
@@ -139,8 +163,19 @@ public class SorteoChampions {
             // Comprobar que ambos equipos no superen el límite de 2 partidos
             if (partidosAsignados.get(equipoPrincipal) < 2 && partidosAsignados.get(equipoContendiente) < 2) {
 
-                asignarPartidos(equipoPrincipal, equipoContendiente, encuentrosMap);
-                ActualizarConteos(partidosAsignados, equipoPrincipal, equipoContendiente);
+                if (!equipoPrincipalHaJugadoComoLocal) {
+                    asignarPartidos(equipoPrincipal, equipoContendiente, encuentrosMap);
+                    ActualizarConteos(partidosAsignados, equipoPrincipal, equipoContendiente);
+                } else {
+                    asignarPartidos(equipoContendiente, equipoPrincipal, encuentrosMap);
+                    ActualizarConteos(partidosAsignados, equipoContendiente, equipoPrincipal);
+                }
+
+                if (!equipoPrincipalHaJugadoComoLocal) {
+                    System.out.println("PARTIDO REALIZADO: " + partidoId);
+                } else {
+                    System.out.println("PARTIDO REALIZADO " + partidoId2);
+                }
 
                 // Marcar el partido como jugado
                 partidosJugados.add(partidoId);
@@ -181,23 +216,26 @@ public class SorteoChampions {
         for (List<Equipo> liga : equiposPorLigaOrdenadosDescendente) {
             for (Equipo equipo : liga) {
                 Encuentro encuentro = encuentrosMap.get(equipo);
-                Boolean haJugado = null;
 
-                // Verificar si el equipo ha jugado según el rol (local o visitante)
-                if (esLocal) {
-                    haJugado = (encuentro != null) ? encuentro.yaHaJugadoComoLocal(equipo) : null;
-                } else {
-                    haJugado = (encuentro != null) ? encuentro.yaHaJugadoComoVisitante(equipo) : null;
+                // Si no hay encuentros registrados para este equipo, puede jugar
+                if (encuentro == null) {
+                    equiposDisponibles.add(equipo);
+                    continue;
                 }
 
-                // Agregar el equipo a la lista si no ha jugado
-                if (haJugado == null || !haJugado) {
+                // Verificar si el equipo ha jugado según el rol (local o visitante)
+                boolean haJugado = esLocal
+                        ? Boolean.TRUE.equals(encuentro.yaHaJugadoComoLocal(equipo))
+                        : Boolean.TRUE.equals(encuentro.yaHaJugadoComoVisitante(equipo));
+
+                // Si no ha jugado en ese rol, agregar a la lista de disponibles
+                if (!haJugado) {
                     equiposDisponibles.add(equipo);
                 }
             }
         }
 
-        // Imprimir los equipos disponibles
+        // Imprimir los equipos disponibles para el rol actual
         String rol = esLocal ? "local" : "visitante";
         System.out.println("Equipos que pueden jugar como " + rol + ":");
         for (Equipo equipo : equiposDisponibles) {

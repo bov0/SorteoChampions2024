@@ -19,24 +19,13 @@ public class Encuentro {
     }
 
     public Boolean yaHaJugadoComoLocal(Equipo equipo) {
-        boolean haJugadoComoVisitante = false;
-
         for (Partido partido : this.partidos) {
             // Si el equipo ha jugado como local, devolver true
             if (partido.getLocal().equals(equipo)) {
                 return true;
             }
-            // Si el equipo ha jugado como visitante, marcar que ha jugado
-            if (partido.getVisitante().equals(equipo)) {
-                haJugadoComoVisitante = true;
-            }
         }
-        // Si ha jugado como visitante pero no como local, devolver false
-        if (haJugadoComoVisitante) {
-            return false;
-        }
-        // Si no ha jugado ningún partido, devolver null
-        return null;
+        return false;
     }
 
     public Boolean yaHaJugadoComoVisitante(Equipo equipo) {
@@ -47,17 +36,8 @@ public class Encuentro {
             if (partido.getVisitante().equals(equipo)) {
                 return true;
             }
-            // Si el equipo ha jugado como local, marcar que ha jugado
-            if (partido.getLocal().equals(equipo)) {
-                haJugadoComoLocal = true;
-            }
         }
-        // Si ha jugado como local pero no como visitante, devolver false
-        if (haJugadoComoLocal) {
-            return false;
-        }
-        // Si no ha jugado ningún partido, devolver null
-        return null;
+        return false;
     }
 
     public Equipo getEquipo() { return equipo; }
